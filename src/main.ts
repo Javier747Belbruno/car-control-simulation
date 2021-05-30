@@ -58,17 +58,17 @@ scene.add(sunlight)
 
 world = new CANNON.World();
 world.broadphase = new CANNON.SAPBroadphase(world);
-world.gravity.set(0, -10, 0);
+world.gravity.set(0, -9.81, 0);
 world.defaultContactMaterial.friction = 0;
 
 var groundMaterial = new CANNON.Material('groundMaterial');
 var wheelMaterial = new CANNON.Material('wheelMaterial');
 var wheelGroundContactMaterial = new CANNON.ContactMaterial(wheelMaterial, groundMaterial, {
-  friction: 8,
+  friction: 2 ,
   restitution: 5,
-  contactEquationStiffness: 1e10,
+  contactEquationStiffness: 1e2,
   contactEquationRelaxation: 8,
-  frictionEquationStiffness: 1e10
+  frictionEquationStiffness: 1e2
 });
 
 world.addContactMaterial(wheelGroundContactMaterial);
@@ -107,11 +107,11 @@ vehicle = new CANNON.RaycastVehicle({
 
 // wheel options
 var options = {
-  radius: 0.3,
+  radius: 0.15,
   directionLocal: new CANNON.Vec3(0, -1, 0),
-  suspensionStiffness: 30,
+  suspensionStiffness: 8 ,
   suspensionRestLength: 0.75,
-  frictionSlip: 0.5,
+  frictionSlip: 2.5,
   dampingRelaxation: 2.3,
   dampingCompression: 4.5,
   maxSuspensionForce: 200000,
@@ -119,7 +119,7 @@ var options = {
   axleLocal: new CANNON.Vec3(-1, 0, 0),
   chassisConnectionPointLocal: new CANNON.Vec3(1, 1, 0),
   maxSuspensionTravel: 0.3,
-  customSlidingRotationalSpeed: -30,
+  customSlidingRotationalSpeed: -1,
   useCustomSlidingRotationalSpeed: true,
 };
 
@@ -276,7 +276,7 @@ window.addEventListener('keyup', navigate)
 
 function navigate(e: any){
   
-  console.log(e.keyCode);
+  //console.log(e.keyCode);
     if(e.type == 'keydown'){
       if(controller.get(e.keyCode)){
       controller.set(e.keyCode,{pressed: true,funcPress: controller.get(e.keyCode).funcPress , funcUnPress: controller.get(e.keyCode).funcUnPress });
@@ -298,17 +298,14 @@ function executeMoves(){
   for (let [key, value] of controller) {
 
     //console.log(controller.get(83));
-    if(key==32 || key==68 || key==87 || key==50 ){
+    
         if(value.pressed){
           value.funcPress();
         }else{
+          if(key==32 || key==68 || key==87 || key==50 ){
           value.funcUnPress();
+          }
         }
-    }else{
-      if(value.pressed){
-        value.funcPress();
-      }
-    }
   }
 }
 
