@@ -47,6 +47,14 @@ var plane = new THREE.Mesh(geometry, material);
 plane.rotation.x = Math.PI/2;
 scene.add(plane);
 
+var geometry = new THREE.PlaneGeometry(10, 10, 10);
+var material = new THREE.MeshBasicMaterial({color: 0x00ff22, side: THREE.DoubleSide});
+var plane = new THREE.Mesh(geometry, material);
+plane.rotation.x = Math.PI/2;
+plane.position.set(0,0,100);
+scene.add(plane);
+
+
 var sunlight = new THREE.DirectionalLight(0xffffff, 1.0);
 sunlight.position.set(-10, 10, 0);
 scene.add(sunlight)
@@ -190,8 +198,61 @@ world.addBody(planeBody);
 
 
 init();
+/*
+output = Kp * err + (Ki * int * dt) + (Kd * der /dt);
 
 
+
+err = Expected Output - Actual Output ie. error;
+int  = int from previous loop + err; ( i.e. integral error )
+der  = err - err from previous loop; ( i.e. differential error)
+
+*/
+
+
+
+const point = new CANNON.Vec3(0,0,100 ); // Objetivo.
+
+//Kp = Proptional Constant.
+//Ki = Integral Constant.
+//Kd = Derivative Constant.
+var Kp = 660;
+var Kd = 900;
+var Ki = 0; 
+var P , I , D = 0;
+
+var ek_1 = 0; 
+var dt = 1/60;
+var int = 0;
+
+function controlPID(){
+  
+  var refZ = chassisBody.position.z;
+  var pointZ = point.z;
+  //err = Expected Output - Actual Output;
+  var e = refZ - pointZ;
+  
+  //Accion Proporcional
+  P = Kp * e;
+  //Accion Derivativa
+  D = Kd * (e - ek_1) / dt; 
+ 
+  // Accion Integral
+   I = Ki * int * dt;
+
+  // u = Kp * err + (Ki * int * dt) + (Kd * der /dt);
+  var u = P + D; //I
+
+  
+  EngineForceVal(u);
+  
+  //Guardo valor
+  ek_1 = e;
+  //int  = int from previous loop + err; ( i.e. integral error )
+  int = int + e;
+
+
+}
 
 
 
@@ -322,6 +383,7 @@ function updatePhysics() {
 function render() {
   requestAnimationFrame(render);
   executeMoves();
+  controlPID();
   chaseCamera();
   renderer.render(scene, camera);
   updatePhysics();
