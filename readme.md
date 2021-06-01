@@ -6,7 +6,9 @@
 
 ![](https://javier747belbruno.github.io/car-control-simulation/assets/demo.png)
 
----
+----
+
+
   #### Build The project
 
 
@@ -29,7 +31,7 @@
  
   ##### Run in Developer Mode with Productions Files (Changes on the fly)
   `npm run serve`
-  
+   
   ---
   
 ##### Controller Code.
@@ -102,6 +104,30 @@ function PID_Controller(){
 | Number 2 key  | Chase Camera Side  |
 
 ----
+
+#### How it works? Non-technical Explanation.
+
+
+Cannon-es is a lightweight 3D physics engine written in JavaScript.
+All Objects, forces and interactions are simulated here (Cannon-es is Pure maths).
+
+This world is invisible, so we need a library that can create a "skin" for those objects and makes them "visible".
+
+
+That library is Three.js (JavaScript 3D Library).
+
+Basically we need Lights, Camera and Meshes (Geometry+Material) for see an Scene on the Screen.
+
+
+For bind that 3D object which have to be same shape and dimensions with the physic object. 
+
+We do something like this:
+
+THREE.Scene.skinObject.position.set( CANNON.world.physicObject.position ); //Update all the time.
+
+This way the "skin" follows the body and we can see on screen what is going on in the physics world.
+
+----
                 
   #### FlowChart
   
@@ -112,6 +138,7 @@ function PID_Controller(){
   ![](https://javier747belbruno.github.io/car-control-simulation/assets/flowchart.png)
 
  
+----
 
 #### task list
 
@@ -122,7 +149,7 @@ function PID_Controller(){
 - [ ] Create an HTML with all functionality inside (Typescript to Javascript legible).
 - [ ] Create a follow path Car Simulation (Maybe is another project).
 
-
+----
 
  #### Credits
    ##### Technologies
