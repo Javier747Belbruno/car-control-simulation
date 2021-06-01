@@ -1,34 +1,62 @@
-import './style.css'
-
-
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es-control';
-//import * as DATGUI from 'dat.gui';
+import {GUI} from 'dat.gui';
+
+
+
+var stateProgram = 0; //0 Start Screen.  //1 Free Drive. //2 PIDController.
+var cameraOption = 1; //1 Chase Camera // 2 Chase Camera Side.                     
+
+var container = <HTMLDivElement>document.querySelector('#app');
+const sim_menu = <HTMLDivElement>document.querySelector('#sim-menu');
+const sim_Button = document.getElementById('sim-button');
+const free_drive_Button = document.getElementById('free-drive-button');
+var infoHtmlElement = <HTMLDivElement>document.querySelector('#info');
+
+sim_menu.classList.remove('hidden');
+
+if(free_drive_Button){
+  free_drive_Button.addEventListener('click', function (){ 
+    stateProgram = 1;
+    cameraOption = 1;
+    simulation();
+    sim_menu.classList.add('hidden');});
+}
+
+if(sim_Button){
+  sim_Button.addEventListener('click', function (){ 
+    stateProgram = 2;
+    cameraOption = 2;
+    simulation();
+    sim_menu.classList.add('hidden');});
+}
+
+function simulation(){
 
 
 var box: THREE.Mesh;
 var vehicle: CANNON.RaycastVehicle;
-var container = <HTMLDivElement>document.querySelector('#app'),
-    w = container.clientWidth,
+var w = container.clientWidth,
     h = container.clientHeight,
     scene = new THREE.Scene(),
     camera = new THREE.PerspectiveCamera(75, w/h, 0.001, 100),
     renderConfig = {antialias: true, alpha: true},
     renderer = new THREE.WebGLRenderer(renderConfig);
 
-    var wheelBodies: any = [],
-    wheelVisuals: any = [];
+var wheelBodies: any = [],
+   wheelVisuals: any = [];
 
-    var world: CANNON.World;
-    var chassisBody: CANNON.Body;
+var world: CANNON.World;
+var chassisBody: CANNON.Body;
 
-    const infoHtmlElement = <HTMLDivElement>document.querySelector('#info');
+var initialTime: number;
+
+
+  //DAT GUI
+  var gui = new GUI( );
 
 function init() {
 
-
-//camera.position.set(0, 1, -10);
-//camera.lookAt(0,0,0);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(w, h);
 container?.appendChild(renderer.domElement);
@@ -59,7 +87,6 @@ var sunlight = new THREE.DirectionalLight(0xffffff, 1.0);
 sunlight.position.set(-10, 10, 0);
 scene.add(sunlight)
 
-
 /**
 * Physics
 **/
@@ -83,11 +110,10 @@ world.addContactMaterial(wheelGroundContactMaterial);
 
 // car physics body
 var chassisShape = new CANNON.Box(new CANNON.Vec3(1, 0.3, 2));
-chassisBody = new CANNON.Body({mass: 800});
+chassisBody = new CANNON.Body({mass: 1600});
 chassisBody.addShape(chassisShape);
-chassisBody.position.set(0, 0.2, 0);
+chassisBody.position.set(0, 1, 0);
 chassisBody.angularVelocity.set(0, 0, 0); // initial velocity
-chassisBody.sleepSpeedLimit = 5;
 
 //Grid Helper
 const gridHelper = new THREE.GridHelper(500, 100);
@@ -115,9 +141,9 @@ vehicle = new CANNON.RaycastVehicle({
 
 // wheel options
 var options = {
-  radius: 0.15,
+  radius: 0.3,
   directionLocal: new CANNON.Vec3(0, -1, 0),
-  suspensionStiffness: 8 ,
+  suspensionStiffness: 50,
   suspensionRestLength: 0.75,
   frictionSlip: 2.5,
   dampingRelaxation: 2.3,
@@ -163,9 +189,8 @@ vehicle.wheelInfos.forEach(function(wheel: any) {
     side: THREE.DoubleSide,
     flatShading: true,
   });
-  //var material = new THREE.MeshBasicMaterial({ color: 0xffffff  });
   var cylinder = new THREE.Mesh(geometry, material);
-  //cylinder.geometry.rotateZ(Math.PI/2);
+  cylinder.geometry.rotateZ(Math.PI/2);
   wheelVisuals.push(cylinder);
   scene.add(cylinder);
 });
@@ -193,70 +218,80 @@ var planeBody = new CANNON.Body({
 });
 world.addBody(planeBody);
 
-
 }
 
-
 init();
-/*
-output = Kp * err + (Ki * int * dt) + (Kd * der /dt);
 
+const point = new CANNON.Vec3(0,0,100 ); // Objetive.
 
-
-err = Expected Output - Actual Output ie. error;
-int  = int from previous loop + err; ( i.e. integral error )
-der  = err - err from previous loop; ( i.e. differential error)
-
-*/
-
-
-
-const point = new CANNON.Vec3(0,0,100 ); // Objetivo.
-
-//Kp = Proptional Constant.
-//Ki = Integral Constant.
+const constantsControl = {
+  //Kp = Proptional Constant.
+  Kp: 480,
 //Kd = Derivative Constant.
-var Kp = 660;
-var Kd = 900;
-var Ki = 0; 
+  Kd: 900,
+  //Ki = Integral Constant.
+  Ki: 0
+};
+if(stateProgram==2){
+const constFolder = gui.addFolder("Control Constants");
+constFolder.add(constantsControl, "Kp", -200, 2000, 10)
+constFolder.add(constantsControl, "Ki", -200, 2000, 10)
+constFolder.add(constantsControl, "Kd", -200, 2000, 10)
+constFolder.open();};
+
 var P , I , D = 0;
 
 var ek_1 = 0; 
 var dt = 1/60;
 var int = 0;
+var u = 0;
 
-function controlPID(){
-  
+function PID_Controller(){
   var refZ = chassisBody.position.z;
   var pointZ = point.z;
   //err = Expected Output - Actual Output;
   var e = refZ - pointZ;
   
-  //Accion Proporcional
-  P = Kp * e;
-  //Accion Derivativa
-  D = Kd * (e - ek_1) / dt; 
- 
-  // Accion Integral
-   I = Ki * int * dt;
-
-  // u = Kp * err + (Ki * int * dt) + (Kd * der /dt);
-  var u = P + D; //I
-
+  //Proptional action
+  P = constantsControl.Kp * e;
+  //Differential action
+  D = constantsControl.Kd * (e - ek_1) / dt; 
+  //Integral action
+   I = constantsControl.Ki * int * dt;
+  // u = Kp * err + (Ki * int * dt) + (Kd * der /dt) //Action
+   u = P + I + D; //I
   
   EngineForceVal(u);
   
-  //Guardo valor
+  //der  = err - err from previous loop; ( i.e. differential error)
   ek_1 = e;
   //int  = int from previous loop + err; ( i.e. integral error )
   int = int + e;
-
-
 }
 
 
+const carConst = {
+  //Motor Force Limit.
+  engineForceLimit: 3000,
+  //Angle Steering.
+  SteeringValLimit: 0.3,
+  //Brake Force.
+  brakeForceLimit: 200
+};
+const phyFolder = gui.addFolder("Car Constants");
+phyFolder.add(carConst, "engineForceLimit", 0, 10000, 10);
+phyFolder.add(carConst, "SteeringValLimit", 0, 1, 0.01);
+phyFolder.add(carConst, "brakeForceLimit", 0, 1000, 10);
+phyFolder.open();
 
 function EngineForceVal(value: any){
+  //Limit Signal
+  if(value > carConst.engineForceLimit){
+    value = carConst.engineForceLimit; 
+  }
+  if(value < -carConst.engineForceLimit){
+    value = -carConst.engineForceLimit; 
+  }
   for (let index = 0; index < 4; index++) {
     vehicle.applyEngineForce(value, index); 
   }
@@ -272,41 +307,46 @@ function SteeringVal(value: any){
   vehicle.setSteeringValue(value, 3);
 }
 
-
 function forward(){
-  EngineForceVal(-2000);
+  EngineForceVal(-carConst.engineForceLimit);
 }
 function backward(){
-  EngineForceVal(2000);
+  EngineForceVal(carConst.engineForceLimit);
 }
 function NotEngineForce(){
   EngineForceVal(0);
 }
 
 function brake(){
-  BrakeValApplied(200);
+  BrakeValApplied(carConst.brakeForceLimit);
 }
 function unbrake(){
   BrakeValApplied(0);
 }
 
 function right(){
-  SteeringVal(-0.3);
+  SteeringVal(-carConst.SteeringValLimit);
 }
 
 function left(){
-  SteeringVal(0.3);
+  SteeringVal(carConst.SteeringValLimit);
 }
 
 function releaseSteering(){
   SteeringVal(0);
 }
 
-
-function orbitCamera(){
+function chaseCameraSide(){
+  var cameraOffset;
+  var relativeCameraOffset;
+  relativeCameraOffset = new THREE.Vector3(-10,4,-18);
+  cameraOffset = relativeCameraOffset.applyMatrix4(box.matrixWorld);
+  camera.position.x = cameraOffset.x  ;
+  camera.position.y = cameraOffset.y ;
+  camera.position.z = cameraOffset.z ;
   camera.lookAt(new THREE.Vector3(vehicle.chassisBody.position.x,vehicle.chassisBody.position.y,vehicle.chassisBody.position.z));
-
 }
+
 function chaseCamera(){
   var cameraOffset;
   var relativeCameraOffset;
@@ -316,60 +356,46 @@ function chaseCamera(){
   camera.position.y = cameraOffset.y ;
   camera.position.z = cameraOffset.z ;
   camera.lookAt(new THREE.Vector3(vehicle.chassisBody.position.x,vehicle.chassisBody.position.y,vehicle.chassisBody.position.z));
-
 }
-
 
 let controller = new Map();
 
-
-//controller.set(49,{pressed: false, funcPress: chaseCamera , funcUnPress:chaseCamera});
-//controller.set(50,{pressed: false, funcPress: orbitCamera , funcUnPress: orbitCamera});
 controller.set(87,{pressed: false, funcPress: forward , funcUnPress: NotEngineForce});
 controller.set(32,{pressed: false, funcPress: brake, funcUnPress: unbrake});
 controller.set(83,{pressed: false, funcPress: backward, funcUnPress: NotEngineForce});
 controller.set(68,{pressed: false, funcPress: right, funcUnPress: releaseSteering});
 controller.set(65,{pressed: false, funcPress: left, funcUnPress: releaseSteering});
 
-
-window.addEventListener('keydown', navigate)
-window.addEventListener('keyup', navigate)
-
 function navigate(e: any){
-  
-  //console.log(e.keyCode);
     if(e.type == 'keydown'){
       if(controller.get(e.keyCode)){
       controller.set(e.keyCode,{pressed: true,funcPress: controller.get(e.keyCode).funcPress , funcUnPress: controller.get(e.keyCode).funcUnPress });
-      //console.log(controller.get(e.keyCode));
       }
+      changeCamera(e.keyCode);
     }
     if(e.type == 'keyup'){
       if(controller.get(e.keyCode)){
         controller.set(e.keyCode,{pressed: false,funcPress: controller.get(e.keyCode).funcPress , funcUnPress: controller.get(e.keyCode).funcUnPress });
-        //console.log(controller.get(e.keyCode));
       }
     }
-
-  
 }
+
+//Window Event Listener (Triggers)
+window.addEventListener('keydown', navigate);
+window.addEventListener('keyup', navigate);
 
 function executeMoves(){
-  
   for (let [key, value] of controller) {
-
-    //console.log(controller.get(83));
-    
-        if(value.pressed){
-          value.funcPress();
-        }else{
-          if(key==32 || key==68 || key==87 || key==50 ){
-          value.funcUnPress();
-          }
-        }
+    if(value.pressed){
+      value.funcPress();
+    }else{
+      //fix here  
+      if(key==32 || key==68 || key==87 ){
+      value.funcUnPress();
+      }
+    }
   }
 }
-
 
 function updatePhysics() {
   world.step(1/60);
@@ -378,28 +404,79 @@ function updatePhysics() {
   box.quaternion.copy(new THREE.Quaternion(chassisBody.quaternion.x,chassisBody.quaternion.y,chassisBody.quaternion.z,chassisBody.quaternion.w));
 }
 
+function changeCamera(camNumb: Number){
+  switch (camNumb) {
+    case 49:
+      cameraOption = 1;
+      break;
+    case 50:
+      cameraOption = 2;
+    default:
+      break;
+  }
+}
 
+function Camera(){
+  switch (cameraOption) {
+    case 1:
+      chaseCamera();
+      break;
+    case 2:
+      chaseCameraSide();
+    default:
+      break;
+  }
+}
+
+var winnerInfo = '';
+function UpdateInfo(){
+  CurrentTime = String((Date.now() - initialTime)/1000);
+  infoHtmlElement.innerText = "Signal: " + String(Math.round(u))
+  +"\n" +"EngineForce Left Rear Wheel:" + String(Math.round(vehicle.wheelInfos[2].engineForce) )
+  +"\n" + "EngineForce Right Rear Wheel:" + String(Math.round(vehicle.wheelInfos[3].engineForce) )
+  +"\n" + "Steering:" + String(vehicle.wheelInfos[2].steering )
+  +"\n" + "Body Position:  x: " + String(Math.round(vehicle.chassisBody.position.x)) + ", y: " + String(Math.round(vehicle.chassisBody.position.y)) + " , z: " + String(Math.round(vehicle.chassisBody.position.z) )
+  +"\n" + "Vehicle.sliding:" + String(vehicle.sliding )
+  +"\n" + "ChassisBody.velocity  x: " + String(Math.round(vehicle.chassisBody.velocity.x)) + ", y: " + String(Math.round(vehicle.chassisBody.velocity.y)) + " , z: " + String(Math.round(vehicle.chassisBody.velocity.z) )
+  +"\n" + "Time (Seconds): " +  CurrentTime;
+  + winnerInfo
+  ;
+}
+
+var winningTime="timeless";
+function DidYouWin(){
+  if(winningTime=="timeless"){
+    if(Math.round(vehicle.chassisBody.velocity.z)==0 && Math.round(vehicle.chassisBody.position.z)==100 ){
+      winningTime = CurrentTime;
+      winnerInfo = "\n" + "Winning Time (Seconds): " +  winningTime;
+      window.alert(winnerInfo);
+    }
+  }
+}
 
 function render() {
   requestAnimationFrame(render);
   executeMoves();
-  controlPID();
-  chaseCamera();
+  if(stateProgram==2){PID_Controller();}
+  Camera();
   renderer.render(scene, camera);
   updatePhysics();
-  infoHtmlElement.innerText = "EngineForce Left Rear Wheel:" + String(vehicle.wheelInfos[2].engineForce )
-                                +"\n" + "EngineForce Right Rear Wheel:" + String(vehicle.wheelInfos[3].engineForce )
-                                +"\n" + "forwardAcceleration:" + String(vehicle.wheelInfos[2].forwardAcceleration )
-                                +"\n" + "customSlidingRotationalSpeed" + String(vehicle.wheelInfos[1].customSlidingRotationalSpeed )
-                                +"\n" + "steering:" + String(vehicle.wheelInfos[2].steering )
-                                +"\n" + "positionBody:  x: " + String(Math.round(vehicle.chassisBody.position.x)) + ", y: " + String(Math.round(vehicle.chassisBody.position.y)) + " , z: " + String(Math.round(vehicle.chassisBody.position.z) )
-                                +"\n" + "vehicle.sliding:" + String(vehicle.sliding )
-                                +"\n" + "chassisBody.velocity  x: " + String(Math.round(vehicle.chassisBody.velocity.x)) + ", y: " + String(Math.round(vehicle.chassisBody.velocity.y)) + " , z: " + String(Math.round(vehicle.chassisBody.velocity.z) )
-                                +"\n" + "chassisBody.vlamba:" ;
-  
+  UpdateInfo();
+  DidYouWin();
+}
+
+initialTime = Date.now();
+var CurrentTime: string;
+
+if(stateProgram==2){
+  setTimeout(() => {
+    render();
+  }, 3000);
+}else{
+  render();
 }
 
 
-render();
 
 
+}
