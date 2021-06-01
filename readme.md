@@ -1,9 +1,8 @@
  
-# PID Controller Car Simulator
+# PID Controller Car Simulator (Demo)
 
-
-                    
-### > Go to Page Demo [Link](https://javier747belbruno.github.io/car-control-simulation/)
+     
+### > Go to Page [Link](https://javier747belbruno.github.io/car-control-simulation/)
 
 ![](https://javier747belbruno.github.io/car-control-simulation/assets/demo.png)
 
@@ -106,7 +105,7 @@ function PID_Controller(){
                 
   #### FlowChart
   
-  Somehow, the javascript code works like Arduino code is works on a microcontroller:
+  Somehow, this Javascript code works like an Arduino code is works on a microcontroller:
 
   First Setup, then Render (Loop Function).
 
@@ -118,8 +117,8 @@ function PID_Controller(){
 
 - [x] Start Menu.
 - [x] Free Drive.
-- [x] Simulation Change on the fly (dat.gui).
-- [ ] PID Controller corrections to formula.
+- [x] Simulation Changes on the fly (dat.gui).
+- [ ] Corrections to PID formula.
 - [ ] Create an HTML with all functionality inside (Typescript to Javascript legible).
 - [ ] Create a follow path Car Simulation (Maybe is another project).
 
@@ -136,10 +135,9 @@ function PID_Controller(){
 
    ######  Thanks for provide free open source software to the community making this 	possible. 
 
-##### Blogs and humans very helpful.
+##### Blogs and people that make life easier.
    - Handling Multiple Key Presses at Once in Vanilla JavaScript (for Game Controllers) by Nicky Dover.
-   - How to Build a Multiplayer (.io) Web Game by Victor Zhou
-   - Bruno Simon — Portfolio (case study) by Bruno Simon
-.
+   - How to Build a Multiplayer (.io) Web Game by Victor Zhou.
+   - Bruno Simon — Portfolio (case study) by Bruno Simon.
 
  
