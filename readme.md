@@ -2,307 +2,132 @@
 # PID Controller Car Simulator
 
 
-**Table of Contents**
-
-
-[TOC]
-
-##Headers (Underline)
-
-H1 Header (Underline)
-=============
-
-H2 Header (Underline)
--------------
-
-###Characters
-                
-----
-
-~~Strikethrough~~ <s>Strikethrough (when enable html tag decode.)</s>
-*Italic*      _Italic_
-**Emphasis**  __Emphasis__
-***Emphasis Italic*** ___Emphasis Italic___
-
-Superscript: X<sub>2</sub>，Subscript: O<sup>2</sup>
-
-**Abbreviation(link HTML abbr tag)**
-
-The <abbr title="Hyper Text Markup Language">HTML</abbr> specification is maintained by the <abbr title="World Wide Web Consortium">W3C</abbr>.
-
-###Blockquotes
-
-> Blockquotes
-
-Paragraphs and Line Breaks
                     
-> "Blockquotes Blockquotes", [Link](http://localhost/)。
+> Page Demo [Link](https://javier747belbruno.github.io/car-control-simulation/)
 
-###Links
 
-[Links](http://localhost/)
+####Controller Code.
 
-[Links with title](http://localhost/ "link title")
+```typescript
+const point = new CANNON.Vec3(0,0,100 ); // Objetive.
 
-`<link>` : <https://github.com>
+const constantsControl = {
+  //Kp = Proptional Constant.
+  Kp: 480,
+//Kd = Derivative Constant.
+  Kd: 900,
+  //Ki = Integral Constant.
+  Ki: 0
+};
+if(stateProgram==2){
+const constFolder = gui.addFolder("Control Constants");
+constFolder.add(constantsControl, "Kp", -200, 2000, 10)
+constFolder.add(constantsControl, "Ki", -200, 2000, 10)
+constFolder.add(constantsControl, "Kd", -200, 2000, 10)
+constFolder.open();};
 
-[Reference link][id/name] 
+var P , I , D = 0;
 
-[id/name]: http://link-url/
+var ek_1 = 0; 
+var dt = 1/60;
+var int = 0;
+var u = 0;
 
-GFM a-tail link @pandao
-
-###Code Blocks (multi-language) & highlighting
-
-####Inline code
-
-`$ npm install marked`
-
-####Code Blocks (Indented style)
-
-Indented 4 spaces, like `<pre>` (Preformatted Text).
-
-    <?php
-        echo "Hello world!";
-    ?>
-    
-Code Blocks (Preformatted text):
-
-    | First Header  | Second Header |
-    | ------------- | ------------- |
-    | Content Cell  | Content Cell  |
-    | Content Cell  | Content Cell  |
-
-####Javascript　
-
-```javascript
-function test(){
-	console.log("Hello world!");
+function PID_Controller(){
+  var refZ = chassisBody.position.z;
+  var pointZ = point.z;
+  //err = Expected Output - Actual Output;
+  var e = refZ - pointZ;
+  
+  //Proptional action
+  P = constantsControl.Kp * e;
+  //Differential action
+  D = constantsControl.Kd * (e - ek_1) / dt; 
+  //Integral action
+   I = constantsControl.Ki * int * dt;
+  
+  // u = Kp * err + (Ki * int * dt) + (Kd * der /dt) //Action
+   u = P + I + D; 
+  
+  //Apply to Car.
+  EngineForceVal(u);
+  
+  //der  = err - err from previous loop; ( i.e. differential error)
+  ek_1 = e;
+  //int  = int from previous loop + err; ( i.e. integral error )
+  int = int + e;
 }
- 
-(function(){
-    var box = function(){
-        return box.fn.init();
-    };
-
-    box.prototype = box.fn = {
-        init : function(){
-            console.log('box.init()');
-
-			return this;
-        },
-
-		add : function(str){
-			alert("add", str);
-
-			return this;
-		},
-
-		remove : function(str){
-			alert("remove", str);
-
-			return this;
-		}
-    };
-    
-    box.fn.init.prototype = box.fn;
-    
-    window.box =box;
-})();
-
-var testBox = box();
-testBox.add("jQuery").remove("jQuery");
 ```
-
-####HTML code
-
-```html
-<!DOCTYPE html>
-<html>
-    <head>
-        <mate charest="utf-8" />
-        <title>Hello world!</title>
-    </head>
-    <body>
-        <h1>Hello world!</h1>
-    </body>
-</html>
-```
-
-###Images
-
-Image:
-
-![](https://pandao.github.io/editor.md/examples/images/4.jpg)
-
-> Follow your heart.
-
-![](https://pandao.github.io/editor.md/examples/images/8.jpg)
-
-> 图为：厦门白城沙滩 Xiamen
-
-图片加链接 (Image + Link)：
-
-[![](https://pandao.github.io/editor.md/examples/images/7.jpg)](https://pandao.github.io/editor.md/examples/images/7.jpg "李健首张专辑《似水流年》封面")
-
-> 图为：李健首张专辑《似水流年》封面
-                
-----
-
-###Lists
-
-####Unordered list (-)
-
-- Item A
-- Item B
-- Item C
-     
-####Unordered list (*)
-
-* Item A
-* Item B
-* Item C
-
-####Unordered list (plus sign and nested)
-                
-+ Item A
-+ Item B
-    + Item B 1
-    + Item B 2
-    + Item B 3
-+ Item C
-    * Item C 1
-    * Item C 2
-    * Item C 3
-
-####Ordered list
-                
-1. Item A
-2. Item B
-3. Item C
-                
+         
 ----
                     
-###Tables
+###Button Configuration:
                     
-First Header  | Second Header
-------------- | -------------
-Content Cell  | Content Cell
-Content Cell  | Content Cell 
 
-| First Header  | Second Header |
+| Key  | Action |
 | ------------- | ------------- |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
+| w  | Accelerator   |
+| Space key  | Brake  |
+| s  | Reverse  |
+| a  | Turn Left  |
+| d  | Turn Right  |
+| Number 1 key  | Chase Camera  |
+| Number 2 key  | Chase Camera Side  |
 
-| Function name | Description                    |
-| ------------- | ------------------------------ |
-| `help()`      | Display the help window.       |
-| `destroy()`   | **Destroy your computer!**     |
-
-| Item      | Value |
-| --------- | -----:|
-| Computer  | $1600 |
-| Phone     |   $12 |
-| Pipe      |    $1 |
-
-| Left-Aligned  | Center Aligned  | Right Aligned |
-| :------------ |:---------------:| -----:|
-| col 3 is      | some wordy text | $1600 |
-| col 2 is      | centered        |   $12 |
-| zebra stripes | are neat        |    $1 |
                 
-----
+  ###FlowChart
+  
+  Somehow, the Execution works like Arduino code is working on a microcontroller:
 
-####HTML entities
+  First Setup, then Render (Loop Function).
 
-&copy; &  &uml; &trade; &iexcl; &pound;
-&amp; &lt; &gt; &yen; &euro; &reg; &plusmn; &para; &sect; &brvbar; &macr; &laquo; &middot; 
+ ![](https://github.com/Javier747Belbruno/car-control-simulation/docs/assets/flowchart.png)
 
-X&sup2; Y&sup3; &frac34; &frac14;  &times;  &divide;   &raquo;
+  ###Build Project
 
-18&ordm;C  &quot;  &apos;
+  ####Make sure you installed Node.js
 
-##Escaping for Special Characters
+  ####Change path to Project
+  cd to/folder/project
 
-\*literal asterisks\*
+  ####Install dependencies
+  `npm i`
+  
+  ####Build
+  `npm run build`
 
-##Markdown extras
-
-###GFM task list
-
-- [x] GFM task list 1
-- [x] GFM task list 2
-- [ ] GFM task list 3
-    - [ ] GFM task list 3-1
-    - [ ] GFM task list 3-2
-    - [ ] GFM task list 3-3
-- [ ] GFM task list 4
-    - [ ] GFM task list 4-1
-    - [ ] GFM task list 4-2
-
-###Emoji mixed :smiley:
-
-> Blockquotes :star:
-
-####GFM task lists & Emoji & fontAwesome icon emoji & editormd logo emoji :editormd-logo-5x:
-
-- [x] :smiley: @mentions, :smiley: #refs, [links](), **formatting**, and <del>tags</del> supported :editormd-logo:;
-- [x] list syntax required (any unordered or ordered list supported) :editormd-logo-3x:;
-- [x] [ ] :smiley: this is a complete item :smiley:;
-- [ ] []this is an incomplete item [test link](#) :fa-star: @pandao; 
-- [ ] [ ]this is an incomplete item :fa-star: :fa-gear:;
-    - [ ] :smiley: this is an incomplete item [test link](#) :fa-star: :fa-gear:;
-    - [ ] :smiley: this is  :fa-star: :fa-gear: an incomplete item [test link](#);
-            
-###TeX(LaTeX)
-   
-$$E=mc^2$$
-
-Inline $$E=mc^2$$ Inline，Inline $$E=mc^2$$ Inline。
-
-$$\(\sqrt{3x-1}+(1+x)^2\)$$
-                    
-$$\sin(\alpha)^{\theta}=\sum_{i=0}^{n}(x^i + \cos(f))$$
-                
-###FlowChart
-
-```flow
-st=>start: Start 🚪
-op=>operation: Read HTML 🐒
-op2=>operation: Read CSS 🖼
-op3=>operation: Executes Javascript Files (⌐■_■)
-op4=>operation: Setup Simulation 👩‍🔧
-op5=>operation: Execute Render Function 🚗
-cond=>condition: Application ended?  🚦
-e=>end: End 👋
-
-st->op->op2->op3->op4->op5->cond->e
-cond(yes)->e
-cond(no)->op5
-```
-
-###Sequence Diagram
-                    
-```seq
-Andrew->China: Says Hello 
-Note right of China: China thinks\nabout it 
-China-->Andrew: How are you? 
-Andrew->>China: I am good thanks!
-```
-
-###End
+  ###Run in Developer Mode (Changes on the fly)
+  `npm run dev`
  
+  ###Run in Developer Mode with Productions Files (Changes on the fly)
+  `npm run serve`
+
+###task list
+
+- [x] Start Menu.
+- [x] Free Drive.
+- [x] Simulation Change on the fly (dat.gui).
+- [ ] PID Controller corrections to formula.
+- [ ] Create an HTML with all functionality inside (Typescript to Javascript legible).
+- [ ] Create a follow path Car Simulation (Maybe is another project).
+
+
+
+  Credits:
+    -Technologies:
+      - Typescript by Microsoft.
+      - Node.js by OpenJS Foundation.
+      - Three.js by Mr.doob.
+      - Cannon.js (Cannon-es) by Stefan Hedman and Poimandres Community. 
+      - Dat.gui by Google Data Arts Team.
+      - Vite.js by Evan You & Vite Contributors.
+
+      Thanks for provide free open source software to the community making this possible. 
+
+    -Blogs and humans very helpful.
+      - Handling Multiple Key Presses at Once in Vanilla JavaScript (for Game Controllers) by Nicky Dover.
+      - How to Build a Multiplayer (.io) Web Game by Victor Zhou
+      - Bruno Simon — Portfolio (case study) by Bruno Simon
+.
+
  
- cd vite-project
-  npm install
-  npm run dev
-npm run build
-npm run serve
-    "build": "tsc && vite build",
-    "serve": "vite preview"
-
-
-
-    Handling Multiple Key Presses at Once in Vanilla JavaScript (for Game Controllers)
- by Nicky Dover
