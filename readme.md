@@ -3,10 +3,37 @@
 
 
                     
-> Page Demo [Link](https://javier747belbruno.github.io/car-control-simulation/)
+### > Go to Page Demo [Link](https://javier747belbruno.github.io/car-control-simulation/)
+
+![](https://javier747belbruno.github.io/car-control-simulation/assets/demo.png)
+
+---
+  #### Build The project
 
 
-####Controller Code.
+  ##### Make sure you installed Node.js and Git before start.
+  
+ ##### Clone the project
+ `git clone https://github.com/Javier747Belbruno/car-control-simulation.git`
+
+  ##### Change path to Project
+  `cd car-control-simulation`
+
+  ##### Install dependencies
+  `npm i`
+  
+  ##### Build (Files to /dist)
+  `npm run build`
+
+  ##### Run in Developer Mode (Changes on the fly)
+  `npm run dev`
+ 
+  ##### Run in Developer Mode with Productions Files (Changes on the fly)
+  `npm run serve`
+  
+  ---
+  
+##### Controller Code.
 
 ```typescript
 const point = new CANNON.Vec3(0,0,100 ); // Objetive.
@@ -58,10 +85,11 @@ function PID_Controller(){
   int = int + e;
 }
 ```
-         
+
+  
 ----
                     
-###Button Configuration:
+### Button Configuration:
                     
 
 | Key  | Action |
@@ -74,35 +102,19 @@ function PID_Controller(){
 | Number 1 key  | Chase Camera  |
 | Number 2 key  | Chase Camera Side  |
 
+----
                 
-  ###FlowChart
+  #### FlowChart
   
-  Somehow, the Execution works like Arduino code is working on a microcontroller:
+  Somehow, the javascript code works like Arduino code is works on a microcontroller:
 
   First Setup, then Render (Loop Function).
 
- ![](https://github.com/Javier747Belbruno/car-control-simulation/docs/assets/flowchart.png)
+  ![](https://javier747belbruno.github.io/car-control-simulation/assets/flowchart.png)
 
-  ###Build Project
-
-  ####Make sure you installed Node.js
-
-  ####Change path to Project
-  cd to/folder/project
-
-  ####Install dependencies
-  `npm i`
-  
-  ####Build
-  `npm run build`
-
-  ###Run in Developer Mode (Changes on the fly)
-  `npm run dev`
  
-  ###Run in Developer Mode with Productions Files (Changes on the fly)
-  `npm run serve`
 
-###task list
+#### task list
 
 - [x] Start Menu.
 - [x] Free Drive.
@@ -113,21 +125,21 @@ function PID_Controller(){
 
 
 
-  Credits:
-    -Technologies:
-      - Typescript by Microsoft.
-      - Node.js by OpenJS Foundation.
-      - Three.js by Mr.doob.
-      - Cannon.js (Cannon-es) by Stefan Hedman and Poimandres Community. 
-      - Dat.gui by Google Data Arts Team.
-      - Vite.js by Evan You & Vite Contributors.
+ #### Credits
+   ##### Technologies
+  - Typescript by Microsoft.
+  - Node.js by OpenJS Foundation.
+   - Three.js by Mr.doob.
+   - Cannon.js (Cannon-es) by Stefan Hedman, Poimandres Community and Marco Fugaro . 
+   - Dat.gui by Google Data Arts Team.
+- Vite.js by Evan You & Vite Contributors.
 
-      Thanks for provide free open source software to the community making this possible. 
+   ######  Thanks for provide free open source software to the community making this 	possible. 
 
-    -Blogs and humans very helpful.
-      - Handling Multiple Key Presses at Once in Vanilla JavaScript (for Game Controllers) by Nicky Dover.
-      - How to Build a Multiplayer (.io) Web Game by Victor Zhou
-      - Bruno Simon — Portfolio (case study) by Bruno Simon
+##### Blogs and humans very helpful.
+   - Handling Multiple Key Presses at Once in Vanilla JavaScript (for Game Controllers) by Nicky Dover.
+   - How to Build a Multiplayer (.io) Web Game by Victor Zhou
+   - Bruno Simon — Portfolio (case study) by Bruno Simon
 .
 
  
