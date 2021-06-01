@@ -471,7 +471,7 @@ var CurrentTime: string;
 if(stateProgram==2){
   setTimeout(() => {
     render();
-  }, 3000);
+  }, 2000);
 }else{
   render();
 }
